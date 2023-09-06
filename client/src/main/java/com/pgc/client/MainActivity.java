@@ -32,26 +32,27 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     private IAidlInterface iAidlInterface;
     private int num;
-    private List<String> messages=new ArrayList<>();
+    private List<String> messages = new ArrayList<>();
     private ArrayAdapter arrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        Intent intent=new Intent();
+        Intent intent = new Intent();
         String ACTION = "AIDL.service";
         intent.setAction(ACTION);
         intent.setPackage("com.pgc.testaidldemo1");
-        bindService(intent,serviceConnection,BIND_AUTO_CREATE);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
 
     @OnClick(R.id.send_message)
     public void onViewClicked(View view) {
-        if (iAidlInterface!=null){
+        if (iAidlInterface != null) {
             try {
-                iAidlInterface.sendMessage("客户端消息"+num);
+                iAidlInterface.sendMessage("客户端消息" + num);
                 num++;
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -59,16 +60,16 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private ServiceConnection serviceConnection=new ServiceConnection() {
+    private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            Toast.makeText(getApplicationContext(),"已连接服务器",Toast.LENGTH_LONG).show();
-            iAidlInterface=IAidlInterface.Stub.asInterface(iBinder);
+            Toast.makeText(getApplicationContext(), "已连接服务器", Toast.LENGTH_LONG).show();
+            iAidlInterface = IAidlInterface.Stub.asInterface(iBinder);
             try {
                 iAidlInterface.asBinder().linkToDeath(mDeathRecipient, 0);
                 iAidlInterface.registerCallBack(iAidlCallBack);
                 messages.addAll(iAidlInterface.getMessages());
-                listView.setAdapter(arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,messages));
+                listView.setAdapter(arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, messages));
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -93,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private IAidlCallBack iAidlCallBack=new IAidlCallBack.Stub() {
+    private IAidlCallBack iAidlCallBack = new IAidlCallBack.Stub() {
         @Override
         public void onMessageSuccess(String message) {
-            if (messages!=null&&arrayAdapter!=null){
+            if (messages != null && arrayAdapter != null) {
                 messages.add(message);
                 handler.sendEmptyMessage(1);
             }
@@ -104,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @SuppressLint("HandlerLeak")
-    private Handler handler=new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
             arrayAdapter.notifyDataSetChanged();
