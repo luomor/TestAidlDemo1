@@ -1,7 +1,6 @@
 package com.pgc.testaidldemo1;
 
 
-
 import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -17,6 +16,7 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,23 +29,24 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     private IAidlInterface iAidlInterface;
     private int num;
-    private List<String> messages=new ArrayList<>();
+    private List<String> messages = new ArrayList<>();
     private ArrayAdapter arrayAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        Intent intent=new Intent(getApplicationContext(),AidlService.class);
-        bindService(intent,serviceConnection,BIND_AUTO_CREATE);
+        Intent intent = new Intent(getApplicationContext(), AidlService.class);
+        bindService(intent, serviceConnection, BIND_AUTO_CREATE);
     }
 
 
     @OnClick(R.id.send_message)
     public void onViewClicked(View view) {
-        if (iAidlInterface!=null){
+        if (iAidlInterface != null) {
             try {
-                iAidlInterface.sendMessage("消息"+num);
+                iAidlInterface.sendMessage("消息" + num);
                 num++;
             } catch (RemoteException e) {
                 e.printStackTrace();
@@ -53,15 +54,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private ServiceConnection serviceConnection=new ServiceConnection() {
+    private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-            iAidlInterface=IAidlInterface.Stub.asInterface(iBinder);
+            iAidlInterface = IAidlInterface.Stub.asInterface(iBinder);
             try {
                 iAidlInterface.asBinder().linkToDeath(mDeathRecipient, 0);//监听进程是否消失
                 iAidlInterface.registerCallBack(iAidlCallBack);//注册消息回调
                 messages.addAll(iAidlInterface.getMessages());//获取历史消息
-                listView.setAdapter(arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,messages));
+                listView.setAdapter(arrayAdapter = new ArrayAdapter<>(getApplicationContext(), android.R.layout.simple_list_item_1, messages));
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -90,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private IAidlCallBack iAidlCallBack=new IAidlCallBack.Stub() {
+    private IAidlCallBack iAidlCallBack = new IAidlCallBack.Stub() {
         @Override
         public void onMessageSuccess(String message) {
-            if (messages!=null&&arrayAdapter!=null){
+            if (messages != null && arrayAdapter != null) {
                 messages.add(message);
                 handler.sendEmptyMessage(1);
             }
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     @SuppressLint("HandlerLeak")
-    private Handler handler=new Handler(){
+    private Handler handler = new Handler() {
         @Override
         public void handleMessage(@NonNull Message msg) {
             arrayAdapter.notifyDataSetChanged();
